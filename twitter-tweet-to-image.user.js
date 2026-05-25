@@ -4,6 +4,8 @@
 // @version      1.0.0
 // @description  将 Twitter/X 推文生成分享图片，支持下载 PNG 和复制到剪贴板
 // @author       tw2img
+// @homepageURL  https://github.com/duxudong444/twitter-tweet-to-image-userscript
+// @supportURL   https://github.com/duxudong444/twitter-tweet-to-image-userscript/issues
 // @match        https://x.com/*
 // @match        https://twitter.com/*
 // @require      https://unpkg.com/html-to-image@1.11.13/dist/html-to-image.js
