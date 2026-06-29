@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Twitter/X 推文转图片
 // @namespace    tw2img
-// @version      1.0.0
+// @version      1.0.1
 // @description  将 Twitter/X 推文生成分享图片，支持下载 PNG 和复制到剪贴板
 // @author       tw2img
 // @license      MIT
@@ -155,6 +155,48 @@
 
   function safeText(el) {
     return el ? (el.textContent || '').trim() : '';
+  }
+
+  function getBilingualOriginalText(textEl, root) {
+    if (!textEl) return '';
+
+    var originalBox = null;
+    var sibling = textEl.nextElementSibling;
+
+    while (sibling) {
+      if (
+        sibling.nodeType === 1 &&
+        sibling.getAttribute('data-x-bilingual-original') === '1'
+      ) {
+        originalBox = sibling;
+        break;
+      }
+      sibling = sibling.nextElementSibling;
+    }
+
+    if (!originalBox && root) {
+      originalBox = root.querySelector('[data-x-bilingual-original="1"]');
+    }
+
+    if (!originalBox) return '';
+
+    var children = originalBox.children || [];
+    if (children.length >= 2) {
+      return (children[1].textContent || '').trim();
+    }
+
+    return (originalBox.textContent || '').replace(/^原文\s*/, '').trim();
+  }
+
+  function getTweetTextWithBilingualOriginal(textEl, root) {
+    if (!textEl) return '';
+
+    var text = (textEl.textContent || '').trim();
+    var originalText = getBilingualOriginalText(textEl, root);
+
+    if (!originalText || originalText === text) return text;
+
+    return text + '\n\n原文\n' + originalText;
   }
 
   function parseCount(text) {
@@ -350,7 +392,7 @@
     // --- 正文 ---
     var textEl = article.querySelector('[data-testid="tweetText"]');
     if (textEl) {
-      data.text = textEl.textContent.trim();
+      data.text = getTweetTextWithBilingualOriginal(textEl, article);
     }
 
     // --- 时间和链接 ---
@@ -546,7 +588,7 @@
           qData.author.handle = qIdentity.handle || (qHm ? '@' + qHm[1] : '');
 
           var qText = container.querySelector('[data-testid="tweetText"]');
-          if (qText) qData.text = qText.textContent.trim();
+          if (qText) qData.text = getTweetTextWithBilingualOriginal(qText, container);
 
           // 引用推文媒体：视频优先，防止视频封面 URL 被 image 抢占
           var qSeen = {};
@@ -612,7 +654,7 @@
     }
 
     var textEl = article.querySelector('[data-testid="tweetText"]');
-    if (textEl) data.text = textEl.textContent.trim();
+    if (textEl) data.text = getTweetTextWithBilingualOriginal(textEl, article);
 
     // 媒体：视频优先，防止封面 URL 被 image 抢占
     var qSeen = {};
